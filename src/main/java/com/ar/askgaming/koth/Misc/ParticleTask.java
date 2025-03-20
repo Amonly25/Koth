@@ -35,8 +35,9 @@ public class ParticleTask extends BukkitRunnable {
             if (!koth.isShowBorders()) {continue;}
             switch (koth.getKothRadius()) {
                 case CIRCLE:
-                    if (koth.getLoc() != null){
-                        generateParticlesInAirBlocks(koth.getLoc(), koth.getRadius()); 
+                    Location loc = koth.getCircleRadius();
+                    if (loc != null){
+                        generateParticlesInAirBlocks(loc, koth.getRadius()); 
                     }
                     
                     break;

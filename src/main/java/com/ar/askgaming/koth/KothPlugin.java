@@ -1,9 +1,11 @@
 package com.ar.askgaming.koth;
 
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.ar.askgaming.koth.Controllers.KothManager;
+import com.ar.askgaming.koth.Controllers.KothManager.KothState;
 import com.ar.askgaming.koth.Controllers.LangManager;
 import com.ar.askgaming.koth.Listeners.PlayerInteractListener;
 import com.ar.askgaming.koth.Listeners.PlayerJoinListener;
@@ -16,9 +18,10 @@ public class KothPlugin extends JavaPlugin {
     private ScoreBoardUtil myScoreBoard;
     private KothManager manager;
     private LangManager langManager;
+    private static KothPlugin instance;
 
     public void onEnable() {
-
+        instance = this;
         saveDefaultConfig();
 
         ConfigurationSerialization.registerClass(Koth.class,"Koth");
@@ -35,8 +38,19 @@ public class KothPlugin extends JavaPlugin {
     }   
 
     public void onDisable() {
+        for (Koth koth : manager.getKoths()) {
+            if (koth.getState() == KothState.INPROGRESS) {
+                getManager().stopKoth(koth);
+            }
+        }
+        for (Player player : getServer().getOnlinePlayers()) {
+            player.setScoreboard(getServer().getScoreboardManager().getNewScoreboard());
+        }
+
     }
-    
+    public static KothPlugin getInstance() {
+        return instance;
+    }
     public ScoreBoardUtil getMyScoreBoard() {
         return myScoreBoard;
     }

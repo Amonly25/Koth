@@ -1,15 +1,20 @@
 package com.ar.askgaming.koth.Controllers;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+import com.ar.askgaming.betterclans.BetterClans;
+import com.ar.askgaming.betterclans.Clan.Clan;
+import com.ar.askgaming.betterclans.Managers.ClansManager;
 import com.ar.askgaming.koth.Koth;
 import com.ar.askgaming.koth.KothPlugin;
 import com.ar.askgaming.koth.Misc.ParticleTask;
@@ -29,7 +34,7 @@ public class KothManager {
         loadKoths();
     }
 
-    private List<Koth> koths;
+    private List<Koth> koths = new ArrayList<>();
     private HashMap<Player, Koth> editingKoths = new HashMap<>();
     public HashMap<Player, Koth> getEditingKoths() {
         return editingKoths;
@@ -41,15 +46,15 @@ public class KothManager {
         CIRCLE, SQUARE
     }
     public enum KothState {
-        WAITING_NEXT, INPROGRESS, FINISHED, EDIT_MODE
+        WAITING_NEXT, INPROGRESS
     }
     public enum KothType {
         SOLO, CLAN
     }
     public enum KothMode {
-        TIME_BASED, 
-        CONTROL_POINT,
-        PROGRESSIVE_CAP
+        BY_TIME,
+        CONTROL,
+        CAPTURE
     }
     private String getLang(String path, Player player) {
         return plugin.getLangManager().getFrom(path, player);
@@ -81,9 +86,16 @@ public class KothManager {
     }
     //#region start
     public void startKoth(Koth koth) {
+        if (koth.getMinimunPlayers() < Bukkit.getOnlinePlayers().size()){
+            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                player.sendMessage(getLang("not-enough-players", player));
+            }
+            plugin.getLogger().warning("Not enough players to start the koth");
+            return;
+        }
         koth.setState(KothState.INPROGRESS);
         for (Player player : plugin.getServer().getOnlinePlayers()) {
-            player.sendMessage(getLang("start", player).replace("{koth}", koth.getName()));
+            player.sendMessage(getLang("start", player).replace("{name}", koth.getName()));
         }
     }
     //#region delete
@@ -93,9 +105,54 @@ public class KothManager {
     }
     //#region end
     public void endKoth(Koth koth) {
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            player.sendMessage(getLang("end", player).replace("{name}", koth.getName()));
+        }
+        Player king = koth.getKing();
+        if (king == null){
+            return;
+        }
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            player.sendMessage(getLang("new_king", player).replace("{player}", king.getName()).replace("{name}", koth.getName()));
+        }
+        List<Player> players = new ArrayList<>();
+        players.add(king);
+        
+        //Clan
+        if (koth.getType() == KothType.CLAN) {
+            if (plugin.getServer().getPluginManager().getPlugin("BetterClans") != null) {
+                BetterClans clans = BetterClans.getInstance();
+                ClansManager clansManager = clans.getClansManager();
+                Clan clan = clansManager.getClanByPlayer(king);
+                if (clan != null) {
+                    for (Player player : clansManager.getAllClanMembers(clan)) {
+                        if (!players.contains(player)) {
+                            players.add(player);
+                        }
+                    }
+                    // Do something with the clan
+                }
+            } else{
+                plugin.getLogger().warning("BetterClans is not installed!");
+            }
+        }
+        List<String> rewards = plugin.getConfig().getStringList("rewards."+koth.getName());
+        for (Player player : players) {
+            player.sendMessage(getLang("reward", player));
+            
+            for (String command : rewards) {
+                plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), command.replace("{player}", player.getName()));
+            }
+        }
+        koth.reset();
+
     }
     //#region stop
-    public void stopKoth(Koth Koth) {
+    public void stopKoth(Koth koth) {
+        koth.reset();
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            player.sendMessage(getLang("stop", player).replace("{name}", koth.getName()));
+        }
     }
     //#region save
     public void saveKoths() {
@@ -148,10 +205,15 @@ public class KothManager {
 
         switch (koth.getKothRadius()) {
             case CIRCLE:
-                Location loc = koth.getLoc();
+                Location loc = koth.getCircleRadius();
+                if (loc == null) {
+                    return false;
+                }
+                if (loc.getWorld() != playerLocation.getWorld()) {
+                    return false;
+                }
                 return loc.distance(playerLocation) <= koth.getRadius();
                 
-
             case SQUARE:
                 Location loc1 = koth.getBlock1();
                 Location loc2 = koth.getBlock2();
@@ -175,25 +237,58 @@ public class KothManager {
     }
     //#region addPlayer
     public void addPlayerToKoth(Player player, Koth koth) {
+        switch (koth.getMode()) {
+            case BY_TIME:
+                //Controlled by the KothTask
+                break;
+            case CONTROL:
+                Player king = koth.getKing();
+                if (king == null) {
+                    koth.setKing(player);
+                    return;
+                } else if (king == player) {
+                    return;
+                }
+                if (isInsideKoth(koth, king.getLocation())){
+                    return;
+                } else {
+                    koth.setKing(player);
+                }
+                break;
+            case CAPTURE:
+                //Controlled by the KothTask
+                break;
+            default:
+                break;
+        }
         
+    }
+    //#region getPlayersIn
+    public List<Player> getPlayersInKoth(Koth koth) {
+        List<Player> players = new ArrayList<>();
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            if (isInsideKoth(koth, player.getLocation())) {
+                players.add(player);
+            }
+        }
+        return players;
     }
     //#region isAvailable
     public boolean isAvailable(Koth koth) {
         switch (koth.getKothRadius()) {
             case CIRCLE:
-                if (koth.getLoc() == null) {
+                if (koth.getCircleRadius() == null || koth.getRadius() == null) {
                     return false;
                 }
+                break;
             case SQUARE:
                 if (koth.getBlock1() == null || koth.getBlock2() == null) {
                     return false;
                 }
+                break;
             default:
                 break;
         }
-        if (koth.getState() == KothState.WAITING_NEXT) {
-            return true;
-        }
-        return false;
+        return true;
     }
 }

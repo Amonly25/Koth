@@ -33,15 +33,15 @@ public class ScoreBoardUtil extends BukkitRunnable{
     public ScoreBoardUtil(KothPlugin main) {
         plugin = main;
 
-        setupScoreboard();
         this.runTaskTimer(plugin, 20, 20);
 
         loadConfig();
+        setupScoreboard();
     }
     private void loadConfig() {
         enabled = plugin.getConfig().getBoolean("scoreboard.enabled", true);
         title = plugin.getConfig().getString("scoreboard.title", "King of the Hill").replace('&', '§');
-        type = plugin.getConfig().getString("scoreboard.type", "Type: %type%").replace('&', '§');
+        type = plugin.getConfig().getString("scoreboard.mode", "Mode: %mode%").replace('&', '§');
         king = plugin.getConfig().getString("scoreboard.king", "King: %player%").replace('&', '§');
         countdown = plugin.getConfig().getString("scoreboard.countdown", "Time left: %time%").replace('&', '§');
         loc = plugin.getConfig().getString("scoreboard.loc", "X: %x% Y: %y%").replace('&', '§');
@@ -58,11 +58,11 @@ public class ScoreBoardUtil extends BukkitRunnable{
         Score text = obj.getScore(ChatColor.DARK_RED + "");
         text.setScore(8);
 
-        Team type = board.registerNewTeam("type");
-        type.addEntry(ChatColor.BLACK + "");
+        Team mode = board.registerNewTeam("mode");
+        mode.addEntry(ChatColor.BLACK + "");
         obj.getScore(ChatColor.BLACK + "").setScore(7);
 
-        Score text1 = obj.getScore(ChatColor.BLACK + "");
+        Score text1 = obj.getScore(ChatColor.DARK_AQUA + "");
         text1.setScore(6);
 
         Team king = board.registerNewTeam("king");
@@ -95,7 +95,7 @@ public class ScoreBoardUtil extends BukkitRunnable{
 
         String king_name = king != null ? king.getName() : "None";
 
-        board.getTeam("type").setPrefix(type.replace("%type%", koth.getType().toString()));
+        board.getTeam("mode").setPrefix(type.replace("%mode%", koth.getMode().name().replace("_", " ")));
 
         board.getTeam("king").setPrefix(this.king.replace("%player%", king_name));
 
@@ -104,7 +104,7 @@ public class ScoreBoardUtil extends BukkitRunnable{
         String x,y;
         Location l;
         if (koth.getKothRadius() == KothRadius.CIRCLE) {
-            l = koth.getLoc();
+            l = koth.getCircleRadius();
         } else {
             l = koth.getBlock1();
         }

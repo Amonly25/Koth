@@ -13,6 +13,8 @@ public class PlayerJoinListener implements Listener{
     private KothPlugin plugin;
     public PlayerJoinListener(KothPlugin main) {
         plugin = main;
+
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @EventHandler()

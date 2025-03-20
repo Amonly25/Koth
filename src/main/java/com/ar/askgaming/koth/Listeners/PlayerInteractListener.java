@@ -15,6 +15,8 @@ public class PlayerInteractListener implements Listener, org.bukkit.event.Listen
     private KothPlugin plugin;
     public PlayerInteractListener(KothPlugin main) {
         plugin = main;
+
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler()
@@ -29,13 +31,15 @@ public class PlayerInteractListener implements Listener, org.bukkit.event.Listen
             switch (e.getAction()) {
                 case LEFT_CLICK_BLOCK:
                     koth.setBlock1(block.getLocation());
-                    plugin.getLangManager().getFrom("set_block1", p);
+                    p.sendMessage("§aBlock 1 set for koth " + koth.getName());
+                    plugin.getManager().saveKoths();
                     plugin.getManager().getEditingKoths().remove(p);
                     break;
                 case RIGHT_CLICK_BLOCK:
                     koth.setBlock2(block.getLocation());
-                    plugin.getLangManager().getFrom("set_block2", p);
+                    p.sendMessage("§aBlock 2 set for koth " + koth.getName());
                     plugin.getManager().getEditingKoths().remove(p);
+                    plugin.getManager().saveKoths();
                     break;
                 default:
                     break;

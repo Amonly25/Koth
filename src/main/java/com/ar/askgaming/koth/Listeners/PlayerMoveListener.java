@@ -16,6 +16,8 @@ public class PlayerMoveListener implements Listener{
     private KothPlugin plugin;
     public PlayerMoveListener(KothPlugin main) {
         plugin = main;
+
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler()
