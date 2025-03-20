@@ -1,0 +1,10 @@
+#Config File
+
+
+scoreboard:
+  enabled: true
+  title: "&6&lKing of the Hill"
+  type: "&7Type: &3%type%"
+  king : "&7King: &4%player%"
+  countdown: "&7Countdown: &6%time%"
+  loc: "&7Loc: &ax:%x%, y:%y%"

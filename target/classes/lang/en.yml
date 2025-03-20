@@ -1,0 +1,13 @@
+start: "&7The KOTH &6{name} &7has started!"
+started: "The KOTH has already started!"
+not_started: "The KOTH has not started!"
+end: "The KOTH has ended!"
+won: "%player% has won the KOTH"
+not_set: "Location is not set correctly"
+no_mode: "No mode specified, setup a location first."
+set_by_radius: "The radius has been set to "
+set_block1: "Block 1 seted, please select another block."
+set_block2: "Location setup correctly, quiting edit mode."
+king: "You are the King of the Hill for now."
+no_king: "You are no more the King "
+

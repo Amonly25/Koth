@@ -1,0 +1,10 @@
+com\ar\askgaming\koth\Main.class
+com\ar\askgaming\koth\Utils\ScoreBoardUtil.class
+com\ar\askgaming\koth\Events\PlayerJoinListener.class
+com\ar\askgaming\koth\Utils\Lang.class
+com\ar\askgaming\koth\Commands.class
+com\ar\askgaming\koth\ParticleTask.class
+com\ar\askgaming\koth\Koth.class
+com\ar\askgaming\koth\Events\PlayerInteractListener.class
+com\ar\askgaming\koth\Events\PlayerMoveListener.class
+com\ar\askgaming\koth\FilesHandler.class

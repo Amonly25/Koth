@@ -1,0 +1,12 @@
+main: com.ar.askgaming.koth.KothPlugin
+name: AskGaming_Koth
+api-version: 1.21
+version: 1.0
+author: AMONLY
+commands:
+  koth:
+    description: 'KOTH commands'
+    usage: /<command> [args]
+    permissions: koth.admin
+
+  
