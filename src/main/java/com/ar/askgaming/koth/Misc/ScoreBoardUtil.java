@@ -13,9 +13,12 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
+import com.ar.askgaming.betterclans.Clan.Clan;
 import com.ar.askgaming.koth.Koth;
 import com.ar.askgaming.koth.KothPlugin;
+import com.ar.askgaming.koth.Controllers.KothManager.KothMode;
 import com.ar.askgaming.koth.Controllers.KothManager.KothRadius;
+import com.ar.askgaming.koth.Controllers.KothManager.KothType;
 
 public class ScoreBoardUtil extends BukkitRunnable{
     
@@ -91,14 +94,28 @@ public class ScoreBoardUtil extends BukkitRunnable{
         if (koth == null) {
             return;
         }
-        Player king = koth.getKing();
-
-        String king_name = king != null ? king.getName() : "None";
 
         board.getTeam("mode").setPrefix(type.replace("%mode%", koth.getMode().name().replace("_", " ")));
 
-        board.getTeam("king").setPrefix(this.king.replace("%player%", king_name));
+        Player king = koth.getKing();
+        String king_name = king != null ? king.getName() : "None";
+        String kingText = king_name;
 
+        Team kingTeam = board.getTeam("king");
+
+        if (koth.getMode() == KothMode.BY_TIME && king != null) {
+            kingText = this.king.replace("%player%", king_name) + " " + plugin.getManager().getPlayerTime(king, koth);
+        } else {
+            kingText = this.king.replace("%player%", king_name);
+        }
+        if (plugin.getClansInstance() != null) {
+            Clan clan = king != null ? plugin.getClansInstance().getClansManager().getClanByPlayer(king) : null;
+            if (koth.getType() == KothType.CLAN && clan != null) {
+                kingText = kingText + " §7(" + clan.getName() + "§7)";
+            }
+        }
+        kingTeam.setPrefix(kingText);
+        
         board.getTeam("countdown").setPrefix(countdown.replace("%time%", plugin.getManager().getCountdownText(koth)));
 
         String x,y;

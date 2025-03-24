@@ -68,6 +68,15 @@ public class Commands implements TabExecutor{
             case "info":
                 info(player, args);
                 break;
+            case "reload":
+                if (!player.hasPermission("koth.admin")) {
+                    player.sendMessage("§cYou do not have permission to use this command.");
+                    return true;
+                }
+                plugin.getLangManager().getCache().clear();
+                plugin.reloadConfig();
+                player.sendMessage("§aLang file reloaded.");
+                break;
             default:
                 sender.sendMessage("Command not found");
             break;

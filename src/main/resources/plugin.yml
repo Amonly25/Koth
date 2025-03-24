@@ -3,7 +3,7 @@ name: Koth
 api-version: 1.21
 version: 1.0
 author: AMONLY
-soft-depend: [BetterClans]
+softdepend: [BetterClans]
 commands:
   koth:
     description: 'KOTH commands'

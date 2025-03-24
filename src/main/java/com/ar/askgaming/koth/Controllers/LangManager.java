@@ -21,7 +21,11 @@ public class LangManager {
         saveDefaultLang("en.yml");
     }
 
-    private final HashMap<String, HashMap<String, String>> cache = new HashMap<>();
+    private HashMap<String, HashMap<String, String>> cache = new HashMap<>();
+
+    public HashMap<String, HashMap<String, String>> getCache() {
+        return cache;
+    }
 
     private void saveDefaultLang(String fileName) {
         File langFile = new File(plugin.getDataFolder() + "/lang/" + fileName);

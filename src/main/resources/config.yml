@@ -1,6 +1,5 @@
 #Config File
 
-
 scoreboard:
   enabled: true
   title: "&6&lKing of the Hill"
@@ -36,3 +35,9 @@ rewards:
   # - any command
   clan_koth:
   - "give %player% diamond 1"
+
+# Only if UniversalNotifier is installed
+# This is usefull to send notificaions via telegram, discord or email
+notifier:
+  start: "⚔️ King Of the Hill **%name%** with mode **%mode%** has started!"
+  end: "👑 Koth **%name%** has ended - The new King is **%player%**!"

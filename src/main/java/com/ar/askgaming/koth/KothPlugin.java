@@ -4,6 +4,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.ar.askgaming.betterclans.BetterClans;
 import com.ar.askgaming.koth.Controllers.KothManager;
 import com.ar.askgaming.koth.Controllers.KothManager.KothState;
 import com.ar.askgaming.koth.Controllers.LangManager;
@@ -19,6 +20,7 @@ public class KothPlugin extends JavaPlugin {
     private KothManager manager;
     private LangManager langManager;
     private static KothPlugin instance;
+    private BetterClans clansInstance;
 
     public void onEnable() {
         instance = this;
@@ -35,6 +37,11 @@ public class KothPlugin extends JavaPlugin {
         new PlayerJoinListener(this);
 
         new Commands(this);
+
+        if (getServer().getPluginManager().getPlugin("BetterClans") != null) {
+            clansInstance = BetterClans.getInstance();
+
+        }
     }   
 
     public void onDisable() {
@@ -59,5 +66,8 @@ public class KothPlugin extends JavaPlugin {
     }
     public LangManager getLangManager() {
         return langManager;
+    }
+    public BetterClans getClansInstance() {
+        return clansInstance;
     }
 }

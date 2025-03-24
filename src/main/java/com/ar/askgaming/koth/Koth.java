@@ -10,6 +10,7 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 
+import com.ar.askgaming.betterclans.Clan.Clan;
 import com.ar.askgaming.koth.Controllers.KothManager.KothMode;
 import com.ar.askgaming.koth.Controllers.KothManager.KothRadius;
 import com.ar.askgaming.koth.Controllers.KothManager.KothState;
@@ -68,7 +69,6 @@ public class Koth implements ConfigurationSerializable{
     }
     public void reset() {
         this.king = null;
-        this.lastKing = null;
         this.countdown = duration;
         this.state = KothState.WAITING_NEXT;
         this.playersControlTime.clear();
@@ -82,7 +82,7 @@ public class Koth implements ConfigurationSerializable{
         return bossBar;
     }
 
-    public void createBossBar() {
+    private void createBossBar() {
         if (mode != KothMode.CAPTURE) {
             return;
         }
@@ -93,11 +93,21 @@ public class Koth implements ConfigurationSerializable{
         if (bossBar == null) {
             return;
         }
+        String title = "";
         if (king == null) {
-            bossBar.setTitle(plugin.getConfig().getString("bossbar.no_king"));
-        } else {
-            bossBar.setTitle(plugin.getConfig().getString("bossbar.king").replace("%player%", king.getName()));
+            title = plugin.getConfig().getString("bossbar.no_king").replace('&', '§');
+
+        } else if (getType() == KothType.CLAN) {
+            if (plugin.getClansInstance() != null) {
+                Clan clan = plugin.getClansInstance().getClansManager().getClanByPlayer(king);
+                    if (clan != null) {
+                        title = plugin.getConfig().getString("bossbar.king").replace("%player%", clan.getName()).replace('&', '§');
+                    }
+                }
+            } else {
+             title = plugin.getConfig().getString("bossbar.king").replace("%player%", king.getName()).replace('&', '§');                
         }
+        bossBar.setTitle(title);
         bossBar.setProgress(1.0 - ((double) countdown / duration));
 
     }
@@ -109,9 +119,17 @@ public class Koth implements ConfigurationSerializable{
     private KothState state = KothState.WAITING_NEXT;
     private KothType type;
     private KothMode mode;
-    private Player king, lastKing = null;
+    private Player king = null;
     private Integer countdown, duration, radius, minimunPlayers;
     private HashMap<Player, Integer> playersControlTime = new HashMap<>();
+    private Clan clan;
+
+    public Clan getClan() {
+        return clan;
+    }   
+    public void setClan(Clan clan) {
+        this.clan = clan;
+    }
 
     public Integer getMinimunPlayers() {
         return minimunPlayers;
@@ -194,12 +212,6 @@ public class Koth implements ConfigurationSerializable{
     }
     public void setKing(Player king) {
         this.king = king;
-    }
-    public Player getLastKing() {
-        return lastKing;
-    }
-    public void setLastKing(Player lastKing) {
-        this.lastKing = lastKing;
     }
     public Integer getRadius() {
         return radius;

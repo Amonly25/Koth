@@ -17,7 +17,11 @@ import com.ar.askgaming.betterclans.Clan.Clan;
 import com.ar.askgaming.betterclans.Managers.ClansManager;
 import com.ar.askgaming.koth.Koth;
 import com.ar.askgaming.koth.KothPlugin;
+import com.ar.askgaming.koth.Events.KothEndEvent;
+import com.ar.askgaming.koth.Events.KothStartEvent;
 import com.ar.askgaming.koth.Misc.ParticleTask;
+import com.ar.askgaming.universalnotifier.UniversalNotifier;
+import com.ar.askgaming.universalnotifier.Managers.AlertManager.Alert;
 
 public class KothManager {
 
@@ -86,7 +90,7 @@ public class KothManager {
     }
     //#region start
     public void startKoth(Koth koth) {
-        if (koth.getMinimunPlayers() < Bukkit.getOnlinePlayers().size()){
+        if (Bukkit.getOnlinePlayers().size() < koth.getMinimunPlayers()){
             for (Player player : plugin.getServer().getOnlinePlayers()) {
                 player.sendMessage(getLang("not-enough-players", player));
             }
@@ -97,10 +101,18 @@ public class KothManager {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             player.sendMessage(getLang("start", player).replace("{name}", koth.getName()));
         }
+        if (plugin.getServer().getPluginManager().getPlugin("UniversalNotifier") != null) {
+            UniversalNotifier notifier = UniversalNotifier.getInstance();
+            String message = plugin.getConfig().getString("notifier.start").replace("%name%", koth.getName()).replace("%mode%", koth.getMode().toString());
+            notifier.getNotificationManager().broadcastToAll(Alert.CUSTOM, message);
+        }
+
+        Bukkit.getPluginManager().callEvent(new KothStartEvent(koth));
     }
     //#region delete
     public void deleteKoth(Koth koth) {
         koths.remove(koth);
+        kothConfig.set(koth.getName(), null);
         saveKoths();
     }
     //#region end
@@ -110,6 +122,7 @@ public class KothManager {
         }
         Player king = koth.getKing();
         if (king == null){
+            koth.reset();
             return;
         }
         for (Player player : plugin.getServer().getOnlinePlayers()) {
@@ -130,6 +143,9 @@ public class KothManager {
                             players.add(player);
                         }
                     }
+                    if (koth.getMode() == KothMode.CAPTURE) {
+                        
+                    }
                     // Do something with the clan
                 }
             } else{
@@ -138,14 +154,19 @@ public class KothManager {
         }
         List<String> rewards = plugin.getConfig().getStringList("rewards."+koth.getName());
         for (Player player : players) {
-            player.sendMessage(getLang("reward", player));
+            player.sendMessage(getLang("reward", player).replace("{name}", koth.getName()));
             
             for (String command : rewards) {
-                plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), command.replace("{player}", player.getName()));
+                plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), command.replace("%player%", player.getName()));
             }
         }
+        if (plugin.getServer().getPluginManager().getPlugin("UniversalNotifier") != null) {
+            UniversalNotifier notifier = UniversalNotifier.getInstance();
+            String message = plugin.getConfig().getString("notifier.end","").replace("%player%", king.getName()).replace("%name%", koth.getName());
+            notifier.getNotificationManager().broadcastToAll(Alert.CUSTOM, message);
+        }
+        Bukkit.getPluginManager().callEvent(new KothEndEvent(koth));
         koth.reset();
-
     }
     //#region stop
     public void stopKoth(Koth koth) {
@@ -200,6 +221,15 @@ public class KothManager {
         seconds = seconds % 60;
         return String.format("%02d:%02d", minutes, seconds);
     }
+    public String getPlayerTime(Player player, Koth koth) {
+        Integer seconds = koth.getPlayersControlTime().getOrDefault(player, 0);
+        if (seconds == 0) {
+            return "00:00";
+        }
+        Integer minutes = seconds / 60;
+        seconds = seconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
     //#region getKothByLocation
     public boolean isInsideKoth(Koth koth, Location playerLocation) {
 
@@ -217,6 +247,10 @@ public class KothManager {
             case SQUARE:
                 Location loc1 = koth.getBlock1();
                 Location loc2 = koth.getBlock2();
+
+                if (loc1 == null || loc2 == null) {
+                    return false;
+                }
 
                 double x1 = Math.min(loc1.getX(), loc2.getX());
                 double y1 = Math.min(loc1.getY(), loc2.getY());
