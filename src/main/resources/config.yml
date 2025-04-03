@@ -40,4 +40,4 @@ rewards:
 # This is usefull to send notificaions via telegram, discord or email
 notifier:
   start: "⚔️ King Of the Hill **%name%** with mode **%mode%** has started!"
-  end: "👑 Koth **%name%** has ended - The new King is **%player%**!"
+  end: "🤴 Koth **%name%** has ended - The new King is **%player%**!"
